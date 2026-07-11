@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-function TaskForm({ onAddTask }) {
+function TaskForm({ onAddTask, editingPatient, onSavePatient, onCancelEdit }) {
   const [nombreMascota, setNombreMascota] = useState('');
   const [especie, setEspecie] = useState('');
   const [edad, setEdad] = useState('');
@@ -13,7 +13,6 @@ function TaskForm({ onAddTask }) {
   };
 
   const mostrarErrorCampo = (campoId, mensaje) => {
-    // No se usa alert() para validar. En cambio, mostramos el mensaje al lado del campo.
     const wrapper = document.getElementById(`${campoId}-wrapper`);
     if (!wrapper) return;
 
@@ -37,6 +36,29 @@ function TaskForm({ onAddTask }) {
       }
     });
   };
+
+  const limpiarFormulario = () => {
+    setNombreMascota('');
+    setEspecie('');
+    setEdad('');
+    setNombrePropietario('');
+    setOrdenLlegada('');
+    setErrorGeneral('');
+  };
+
+  useEffect(() => {
+    if (editingPatient) {
+      setNombreMascota(editingPatient.nombre ?? '');
+      setEspecie(editingPatient.especie ?? '');
+      setEdad(editingPatient.edad ?? '');
+      setNombrePropietario(editingPatient.nombrePropietario ?? '');
+      setOrdenLlegada(editingPatient.ordenLlegada ?? '');
+      setErrorGeneral('');
+      return;
+    }
+
+    limpiarFormulario();
+  }, [editingPatient]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -96,6 +118,19 @@ function TaskForm({ onAddTask }) {
       return;
     }
 
+    if (editingPatient) {
+      onSavePatient({
+        ...editingPatient,
+        nombre: nombreTrim,
+        especie: especieTrim,
+        edad: edadNumero,
+        nombrePropietario: nombrePropietarioTrim,
+        ordenLlegada: ordenLlegadaNumero,
+      });
+      onCancelEdit?.();
+      return;
+    }
+
     onAddTask({
       nombre: nombreTrim,
       especie: especieTrim,
@@ -104,17 +139,12 @@ function TaskForm({ onAddTask }) {
       ordenLlegada: ordenLlegadaNumero,
     });
 
-    setNombreMascota('');
-    setEspecie('');
-    setEdad('');
-    setNombrePropietario('');
-    setOrdenLlegada('');
-    setErrorGeneral('');
+    limpiarFormulario();
   };
 
   return (
     <section className="card">
-      <h2>Ingreso de paciente</h2>
+      <h2>{editingPatient ? 'Editar paciente' : 'Ingreso de paciente'}</h2>
       <form onSubmit={handleSubmit}>
         <div className="input-wrapper" id="nombre-wrapper">
           <label htmlFor="nombre">Nombre de la mascota</label>
@@ -175,7 +205,14 @@ function TaskForm({ onAddTask }) {
         </div>
 
         {errorGeneral && <p className="error">{errorGeneral}</p>}
-        <button type="submit">Ingreso de paciente</button>
+        <div className="form-actions">
+          <button type="submit">{editingPatient ? 'Guardar cambios' : 'Ingreso de paciente'}</button>
+          {editingPatient && (
+            <button type="button" className="secondary-button" onClick={onCancelEdit}>
+              Cancelar
+            </button>
+          )}
+        </div>
       </form>
     </section>
   );

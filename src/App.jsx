@@ -3,14 +3,8 @@ import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
 import AdviceBox from './components/AdviceBox';
 
-//esta seccion fue solucionada con ia copilot, ya que no sabia como hacer para que se guarden
-// las tareas en el local storage y que se mantengan al recargar la pagina. Primero consulté
-//a chatgpt con una imagen del error, donde me indicó que el error estaba en el archivo "App.jsx"
-// me ubiqué en el "App.jsx" y le pedi a copilot que solucionara el error con el texto "solucionar error"
-
-
 function App() {
-  let [pacientes, setPacientes] = useState(() => {
+  const [pacientes, setPacientes] = useState(() => {
     let arregloGuardado = [];
     const guardado = localStorage.getItem('pacientes');
     if (guardado) {
@@ -18,36 +12,94 @@ function App() {
     }
     return arregloGuardado;
   });
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('todo');
+  const [criterioOrden, setCriterioOrden] = useState('ninguno');
+  const [pacienteEditandoId, setPacienteEditandoId] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('pacientes', JSON.stringify(pacientes));
   }, [pacientes]);
 
   const agregarPaciente = (datosPaciente) => {
-    let nuevoPaciente = {
+    const nuevoPaciente = {
       id: Date.now(),
       atendido: 'No',
       ...datosPaciente,
     };
-    let listaActualizada = [...pacientes, nuevoPaciente];
-    setPacientes(listaActualizada);
+    setPacientes((prevPacientes) => [...prevPacientes, nuevoPaciente]);
   };
 
   const eliminarPaciente = (pacienteId) => {
-    let listaActualizada = pacientes.filter((paciente) => paciente.id !== pacienteId);
+    const listaActualizada = pacientes.filter((paciente) => paciente.id !== pacienteId);
     setPacientes(listaActualizada);
+    if (pacienteEditandoId === pacienteId) {
+      setPacienteEditandoId(null);
+    }
   };
 
   const cambiarEstadoPaciente = (pacienteId) => {
-    let listaActualizada = pacientes.map((paciente) => {
+    const listaActualizada = pacientes.map((paciente) => {
       if (paciente.id === pacienteId) {
-        let nuevoEstado = paciente.atendido === 'Sí' ? 'No' : 'Sí';
+        const nuevoEstado = paciente.atendido === 'Sí' ? 'No' : 'Sí';
         return { ...paciente, atendido: nuevoEstado };
       }
       return paciente;
     });
     setPacientes(listaActualizada);
   };
+
+  const editarPaciente = (pacienteActualizado) => {
+    const listaActualizada = pacientes.map((paciente) => {
+      if (paciente.id === pacienteActualizado.id) {
+        return pacienteActualizado;
+      }
+      return paciente;
+    });
+    setPacientes(listaActualizada);
+    setPacienteEditandoId(null);
+  };
+
+  const iniciarEdicion = (pacienteId) => {
+    setPacienteEditandoId(pacienteId);
+  };
+
+  const cancelarEdicion = () => {
+    setPacienteEditandoId(null);
+  };
+
+  const pacienteEditando = pacientes.find((paciente) => paciente.id === pacienteEditandoId) ?? null;
+
+  const terminoBusqueda = busqueda.trim().toLowerCase();
+  const pacientesFiltrados = [...pacientes]
+    .filter((paciente) => {
+      if (!terminoBusqueda) {
+        return true;
+      }
+
+      return (
+        paciente.nombre?.toLowerCase().includes(terminoBusqueda) ||
+        paciente.nombrePropietario?.toLowerCase().includes(terminoBusqueda) ||
+        paciente.especie?.toLowerCase().includes(terminoBusqueda)
+      );
+    })
+    .filter((paciente) => {
+      if (filtroEstado === 'todo') {
+        return true;
+      }
+      if (filtroEstado === 'atendidos') {
+        return paciente.atendido === 'Sí';
+      }
+      return paciente.atendido !== 'Sí';
+    });
+
+  if (criterioOrden === 'az') {
+    pacientesFiltrados.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+  }
+
+  if (criterioOrden === 'ordenLlegada') {
+    pacientesFiltrados.sort((a, b) => a.ordenLlegada - b.ordenLlegada);
+  }
 
   const totalPacientes = pacientes.length;
   const totalAtendidos = pacientes.filter((paciente) => paciente.atendido === 'Sí').length;
@@ -65,13 +117,45 @@ function App() {
         <p>Atendidas: {totalAtendidos}</p>
         <p>Pendientes: {totalPendientes}</p>
       </section>
-      <TaskForm onAddTask={agregarPaciente} />
+
+      <TaskForm
+        onAddTask={agregarPaciente}
+        editingPatient={pacienteEditando}
+        onSavePatient={editarPaciente}
+        onCancelEdit={cancelarEdicion}
+      />
+
+      <section className="card toolbar">
+        <input
+          type="text"
+          placeholder="Buscar por nombre, propietario o especie"
+          value={busqueda}
+          onChange={(event) => setBusqueda(event.target.value)}
+        />
+
+        <div className="toolbar-controls">
+          <select value={filtroEstado} onChange={(event) => setFiltroEstado(event.target.value)}>
+            <option value="todo">Todos</option>
+            <option value="atendidos">Solo atendidos</option>
+            <option value="pendientes">Solo pendientes</option>
+          </select>
+          <select value={criterioOrden} onChange={(event) => setCriterioOrden(event.target.value)}>
+            <option value="ninguno">Sin ordenar</option>
+            <option value="az">Ordenar A-Z</option>
+            <option value="ordenLlegada">Ordenar por orden de llegada</option>
+          </select>
+        </div>
+      </section>
+
       <TaskList
-        patients={pacientes}
+        patients={pacientesFiltrados}
         onDeletePatient={eliminarPaciente}
         onToggleStatus={cambiarEstadoPaciente}
+        onEditPatient={iniciarEdicion}
+        editingPatientId={pacienteEditandoId}
       />
     </main>
   );
 }
+
 export default App;

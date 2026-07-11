@@ -1,6 +1,6 @@
 import TaskItem from './TaskItem';
 
-function TaskList({ patients, onDeletePatient, onToggleStatus }) {
+function TaskList({ patients, onDeletePatient, onToggleStatus, onEditPatient, editingPatientId }) {
   if (patients.length === 0) {
     return (
       <section className="card">
@@ -20,6 +20,8 @@ function TaskList({ patients, onDeletePatient, onToggleStatus }) {
             patient={patient}
             onDeletePatient={onDeletePatient}
             onToggleStatus={onToggleStatus}
+            onEditPatient={onEditPatient}
+            isEditing={editingPatientId === patient.id}
           />
         ))}
       </ul>
