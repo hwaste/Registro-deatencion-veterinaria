@@ -10,55 +10,66 @@ import AdviceBox from './components/AdviceBox';
 
 
 function App() {
-  const [tasks, setTasks] = useState(() => {
-    const saved = localStorage.getItem('tasks');
-    return saved ? JSON.parse(saved) : [];
+  let [pacientes, setPacientes] = useState(() => {
+    let arregloGuardado = [];
+    const guardado = localStorage.getItem('pacientes');
+    if (guardado) {
+      arregloGuardado = JSON.parse(guardado);
+    }
+    return arregloGuardado;
   });
 
   useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
-  const addTask = (taskText) => {
-    const newTask = {
+    localStorage.setItem('pacientes', JSON.stringify(pacientes));
+  }, [pacientes]);
+
+  const agregarPaciente = (datosPaciente) => {
+    let nuevoPaciente = {
       id: Date.now(),
-      text: taskText,
-      completed: false,
+      atendido: 'No',
+      ...datosPaciente,
     };
-    setTasks([...tasks, newTask]);
+    let listaActualizada = [...pacientes, nuevoPaciente];
+    setPacientes(listaActualizada);
   };
-  const toggleTask = (taskId) => {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        return {
-          ...task,
-          completed: !task.completed,
-        };
+
+  const eliminarPaciente = (pacienteId) => {
+    let listaActualizada = pacientes.filter((paciente) => paciente.id !== pacienteId);
+    setPacientes(listaActualizada);
+  };
+
+  const cambiarEstadoPaciente = (pacienteId) => {
+    let listaActualizada = pacientes.map((paciente) => {
+      if (paciente.id === pacienteId) {
+        let nuevoEstado = paciente.atendido === 'Sí' ? 'No' : 'Sí';
+        return { ...paciente, atendido: nuevoEstado };
       }
-      return task;
+      return paciente;
     });
-    setTasks(updatedTasks);
+    setPacientes(listaActualizada);
   };
-  const deleteTask = (taskId) => {
-    const confirmDelete = window.confirm('¿Estas seguro de eliminar esta tarea?');
-    if (!confirmDelete) {
-      return;
-    }
-    const filteredTasks = tasks.filter((task) => task.id !== taskId);
-    setTasks(filteredTasks);
-  };
+
+  const totalPacientes = pacientes.length;
+  const totalAtendidos = pacientes.filter((paciente) => paciente.atendido === 'Sí').length;
+  const totalPendientes = totalPacientes - totalAtendidos;
+
   return (
     <main className="container">
-      <h1>Gestor Básico de Tareas</h1>
+      <h1>Registro de Pacientes Veterinarios</h1>
       <p className="description">
-        Aplicación creada con React, componentes, Local Storage y consumo
-        de API.
+        Ingrese los datos del paciente para llevar el control de atención.
       </p>
       <AdviceBox />
-      <TaskForm onAddTask={addTask} />
+      <section className="summary">
+        <p>Total de mascotas registradas: {totalPacientes}</p>
+        <p>Atendidas: {totalAtendidos}</p>
+        <p>Pendientes: {totalPendientes}</p>
+      </section>
+      <TaskForm onAddTask={agregarPaciente} />
       <TaskList
-        tasks={tasks}
-        onToggleTask={toggleTask}
-        onDeleteTask={deleteTask}
+        patients={pacientes}
+        onDeletePatient={eliminarPaciente}
+        onToggleStatus={cambiarEstadoPaciente}
       />
     </main>
   );
