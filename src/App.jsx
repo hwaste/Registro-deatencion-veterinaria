@@ -16,6 +16,7 @@ function App() {
   const [filtroEstado, setFiltroEstado] = useState('todo');
   const [criterioOrden, setCriterioOrden] = useState('ninguno');
   const [pacienteEditandoId, setPacienteEditandoId] = useState(null);
+  const [errorBusqueda, setErrorBusqueda] = useState('');
 
   useEffect(() => {
     localStorage.setItem('pacientes', JSON.stringify(pacientes));
@@ -69,6 +70,19 @@ function App() {
   };
 
   const pacienteEditando = pacientes.find((paciente) => paciente.id === pacienteEditandoId) ?? null;
+
+  const manejarCambioBusqueda = (event) => {
+    const valor = event.target.value;
+    const valido = /^[a-zA-ZáéíóúÁÉÍÓÚüÜ\s]*$/.test(valor);
+
+    if (!valido) {
+      setErrorBusqueda('Solo se permiten letras de la A a la Z y espacios.');
+      return;
+    }
+
+    setErrorBusqueda('');
+    setBusqueda(valor);
+  };
 
   const terminoBusqueda = busqueda.trim().toLowerCase();
   const pacientesFiltrados = [...pacientes]
@@ -130,8 +144,9 @@ function App() {
           type="text"
           placeholder="Buscar por nombre, propietario o especie"
           value={busqueda}
-          onChange={(event) => setBusqueda(event.target.value)}
+          onChange={manejarCambioBusqueda}
         />
+        {errorBusqueda && <p className="error">{errorBusqueda}</p>}
 
         <div className="toolbar-controls">
           <select value={filtroEstado} onChange={(event) => setFiltroEstado(event.target.value)}>

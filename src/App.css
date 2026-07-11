@@ -30,6 +30,31 @@ h1 {
 }
 .advice {
   border-left: 6px solid #2563eb;
+  overflow: hidden;
+}
+.animated-banner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  animation: moveBanner 3s linear infinite;
+}
+@keyframes moveBanner {
+  0% {
+    transform: translateX(-10%);
+  }
+  50% {
+    transform: translateX(10%);
+  }
+  100% {
+    transform: translateX(-10%);
+  }
 }
 form {
   display: flex;
