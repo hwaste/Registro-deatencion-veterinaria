@@ -1,10 +1,8 @@
 ## El siguiente proyecto es parte de una evaluacion de la asignatura Front End.
 
-    Consiste en implementar una solucion para el registro de mascotas de un centro veterinario con funciones de validacion de datos, integrar, funciones de estado "atendido, atendiendo", eliminar el registro, editar registro, funciones de visualizacion de los registros por orden alfabetico, y por orde de llegada.
+ Consiste en implementar una solucion para el registro de mascotas de un centro veterinario con funciones de validacion de datos, integrar, funciones de estado "atendido, atendiendo", eliminar el registro, editar registro, funciones de visualizacion de los registros por orden alfabetico, y por orden de llegada.
+Adicionalmente cuenta con un contador de pacientes registrados, pacientes atendidos y pacientes pendientes.
 
-    Adicionalmente cuenta con un contador de pacientes registrados, pacientes atendidos y pacientes pendientes.
-
----
 
 ## Uso de Inteligencia Artificial
 
